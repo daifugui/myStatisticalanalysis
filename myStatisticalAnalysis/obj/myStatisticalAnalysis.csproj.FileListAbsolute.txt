@@ -1,0 +1,8 @@
+K:\vc\myStatisticalAnalysis\myStatisticalAnalysis\bin\Debug\myStatisticalAnalysis.exe
+K:\vc\myStatisticalAnalysis\myStatisticalAnalysis\bin\Debug\myStatisticalAnalysis.pdb
+K:\vc\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\ResolveAssemblyReference.cache
+K:\vc\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\myStatisticalAnalysis.Form1.resources
+K:\vc\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\myStatisticalAnalysis.Properties.Resources.resources
+K:\vc\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\myStatisticalAnalysis.csproj.GenerateResource.Cache
+K:\vc\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\myStatisticalAnalysis.exe
+K:\vc\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\myStatisticalAnalysis.pdb
