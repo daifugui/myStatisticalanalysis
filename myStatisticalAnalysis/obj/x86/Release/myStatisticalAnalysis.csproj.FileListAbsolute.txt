@@ -1,0 +1,10 @@
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\bin\x86\Release\myStatisticalAnalysis.exe
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\bin\x86\Release\myStatisticalAnalysis.pdb
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\bin\x86\Release\ZedGraph.dll
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\x86\Release\ResolveAssemblyReference.cache
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\x86\Release\myStatisticalAnalysis.Form1.resources
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\x86\Release\myStatisticalAnalysis.Properties.Resources.resources
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\x86\Release\ResGen.read.1.tlog
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\x86\Release\ResGen.write.1.tlog
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\x86\Release\myStatisticalAnalysis.exe
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\x86\Release\myStatisticalAnalysis.pdb

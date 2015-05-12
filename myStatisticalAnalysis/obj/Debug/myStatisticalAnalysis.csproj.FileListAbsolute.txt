@@ -1,0 +1,9 @@
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\myStatisticalAnalysis.exe
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\myStatisticalAnalysis.pdb
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\bin\Debug\myStatisticalAnalysis.exe
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\bin\Debug\myStatisticalAnalysis.pdb
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\ResolveAssemblyReference.cache
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\myStatisticalAnalysis.Form1.resources
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\myStatisticalAnalysis.Properties.Resources.resources
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\ResGen.read.1.tlog
+E:\mycode\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\ResGen.write.1.tlog

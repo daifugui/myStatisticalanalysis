@@ -6,9 +6,13 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.Data.OleDb;
-using Microsoft.Reporting.WinForms;
+//using Microsoft.Reporting.WinForms;
 using ZedGraph;
 using System.Collections;
+using System.IO.Ports;
+using System.Threading;
+using System.IO;
+using System.Data.SqlClient;
 namespace myStatisticalAnalysis
 {
     
@@ -20,10 +24,23 @@ namespace myStatisticalAnalysis
         }
         public DataSet RawDataSet=new DataSet();
         public DataTable RawDataTable = new DataTable();
-        public DataSet readExcel(string excelpath)
+        public DataSet readExcel(string fileName)
         {
-            string strCon = " Provider = Microsoft.Jet.OLEDB.4.0 ; Data Source = "+excelpath +";Extended Properties=Excel 8.0";
-            OleDbConnection myConn = new OleDbConnection(strCon);
+             string connStr ;
+             if (fileName.EndsWith(".xls"))
+               connStr = "Provider=Microsoft.Jet.OLEDB.4.0;" + "Data Source=" + fileName + ";" + ";Extended Properties=\"Excel 8.0;HDR=NO;IMEX=1\"";
+           else
+                 connStr = "Provider=Microsoft.ACE.OLEDB.12.0;" + "Data Source=" + fileName + ";" + ";Extended Properties=\"Excel 12.0;HDR=YES;IMEX=1\"";
+
+
+
+        //    if (fileType == ".xls")
+        //        connStr = "Provider=Microsoft.Jet.OLEDB.4.0;" + "Data Source=" + fileName + ";" + ";Extended Properties=\"Excel 8.0;HDR=YES;IMEX=1\"";
+       //     else
+          //      connStr = "Provider=Microsoft.ACE.OLEDB.12.0;" + "Data Source=" + fileName + ";" + ";Extended Properties=\"Excel 12.0;HDR=YES;IMEX=1\"";
+
+      //      string strCon = " Provider = Microsoft.Jet.OLEDB.4.0 ; Data Source = " + excelpath + ";Extended Properties=Excel 8.0;HDR=NO";
+           OleDbConnection myConn = new OleDbConnection(connStr);
             myConn.Open();
 
             DataTable dtSheetName = myConn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, new object[] { null, null, null, "Table" });
@@ -43,6 +60,7 @@ namespace myStatisticalAnalysis
 
                   OleDbDataAdapter myCommand = new OleDbDataAdapter(strCom, myConn);
                   myCommand.Fill(RawDataSet, "[" + strTableNames[k] + "]");
+                 
                 }
   
           //  myDataSet = new DataSet();
@@ -57,7 +75,7 @@ namespace myStatisticalAnalysis
         private void openpToolStripMenuItem_Click(object sender, EventArgs e)
         {
           //  this.openFileDialog1.Filter = "*.xls";
-            this.openFileDialog1.Filter = "(*.xls)|*.xls";
+            this.openFileDialog1.Filter = "(*.xls)|*.xls|(*.xlsx)|*.xlsx";
             if(this.openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 string FileName = this.openFileDialog1.FileName;
@@ -68,11 +86,12 @@ namespace myStatisticalAnalysis
                // this.dataGridView1.Rows.Clear();
                // DataTable dt = (DataTable)this.dataGridView1.DataSource;
               //  dt.Rows.Clear();
-                foreach (DataRow Dr in RawDataTable.Rows)
-                {
+                //foreach (DataRow Dr in RawDataTable.Rows)
+               // {
                     //MessageBox.Show(Dr[0].ToString());
-                    string ss = Dr[0].ToString();
-                }
+                    //string ss = Dr[0].ToString();
+              // }
+                this.dataGridView1.Columns.Clear();
                 this.dataGridView1.DataSource = RawDataTable;
               
                // dataGridView1.AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders);
@@ -284,7 +303,7 @@ g.DrawString("hello", font, brush,20f, 20f);
             //double[] dataX=new double[nn];
             for (int i = 0; i < nn; i++)
             {
-                dataY[i] = (double)RawDataTable.Rows[i][0];
+                dataY[i] = (double)System.Convert.ToDouble(RawDataTable.Rows[i][0]);
             }
 
             //   double[] showdataY = {1,2,4,3,2,3,4,4,1,23,12,12,12,12,1,56,323};
@@ -412,16 +431,389 @@ g.DrawString("hello", font, brush,20f, 20f);
             ZedxbarChart.Invalidate();
              
         }
+        public DataTable GetDgvToTable(DataGridView dgv)
+        {
+            DataTable dt = new DataTable();
+
+            // 列强制转换
+            for (int count = 0; count < dgv.Columns.Count; count++)
+            {
+                DataColumn dc = new DataColumn(dgv.Columns[count].Name.ToString());
+                dt.Columns.Add(dc);
+            }
+
+            // 循环行
+            for (int count = 0; count < dgv.Rows.Count; count++)
+            {
+                DataRow dr = dt.NewRow();
+                for (int countsub = 0; countsub < dgv.Columns.Count; countsub++)
+                {
+                    dr[countsub] = Convert.ToString(dgv.Rows[count].Cells[countsub].Value);
+                }
+                dt.Rows.Add(dr);
+            }
+            return dt;
+        }
         private void sPCToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ShowXbarRChart(RawDataTable, 5, zedGraphControl1, zedGraphControl2);             
+          //  ThreadRun = false;
+        //    this.sPort.Close();
+            DataTable dtSource = GetDgvToTable(this.dataGridView1);
+            ShowXbarRChart(dtSource, 5, zedGraphControl1, zedGraphControl2);
+            ShowDistributionChart(dtSource, zedGraphControl3);
         }
+
+        public void ShowDistributionChart(DataTable RawDataTable, ZedGraph.ZedGraphControl ZedChart0)
+        {
+            ZedChart0.GraphPane.CurveList.Clear();
+            ZedChart0.GraphPane.GraphItemList.Clear();
+            int nn = RawDataTable.Rows.Count;
+            double[] dataY = new double[nn];
+          //  double[] dataX=new double[nn];
+            double maxY = System.Convert.ToDouble(RawDataTable.Rows[0][0]);
+            double minY = maxY;
+            double sumY = 0;
+            double sumY2 = 0;
+            for (int i = 0; i < nn; i++)
+            {
+                dataY[i] = System.Convert.ToDouble(RawDataTable.Rows[i][0]);
+                if (dataY[i] > maxY) 
+                    maxY = dataY[i];
+                else if (dataY[i] < minY) 
+                    minY = dataY[i];
+
+                sumY += dataY[i];
+                sumY2 += (dataY[i] * dataY[i]);
+            }
+            double meanY = sumY / nn;
+            double VarY = (sumY2 - nn * meanY * meanY) / (nn - 1);
+             double StdY=Math.Sqrt(VarY);
+            double [] dataYn =new double[7]{0,0,0,0,0,0,0};
+            double[] dataX0 =new double[7]{30,30.5,31,31.5,32,32.2,32.4};
+            for (int i = 0; i < 7; i++)
+            {
+                dataX0[i] =minY+ i * (maxY - minY) / 7 + (maxY - minY)/14;
+            }
+                for (int i = 0; i < nn; i++)
+                {
+                    if (dataY[i] == maxY)
+                        dataYn[6]++;
+                    else
+                        dataYn[(int)(7 * (dataY[i] - minY) / (maxY - minY))]++;
+
+                }
+
+
+
+               ZedChart0.GraphPane.AddBar("Data Distribution", dataX0, dataYn, Color.Blue);
+               // Axis aa=ZedChart0.GraphPane.BarBaseAxis();
+              //  ZedChart0.GraphPane.MinBarGap = (float)0.02;
+                ZedChart0.GraphPane.ClusterScaleWidth = (float)(maxY-minY)/(7);
+
+            PointPairList datanorm=new PointPairList();
+            //    double[] datanorm = new double[100];
+                for (int i = 0; i < 100; i++)
+                {
+                    double xi=0;
+                    double yi=0;
+                    xi=meanY - 4* StdY+ (8 * StdY) *i/ 100;
+                    yi = Math.Exp(-(xi - meanY) * (xi - meanY) / VarY / 2) / Math.Sqrt(2 * Math.PI) / StdY ;
+                    datanorm.Add(xi, yi * nn);
+ 
+                }
+          //      ZedChart0.GraphPane.XAxis.Min = meanY - 6 * StdY;
+              //  ZedChart0.GraphPane.XAxis.Max=meanY + 6 * StdY;
+
+                ZedChart0.GraphPane.AddCurve("norm", datanorm, Color.Green,SymbolType.None);
+                  //  for (double x = meanY - 6 * StdY; x <= meanY + 6 * StdY; x += (12 * StdY) / 100)
+                //    {
+                  //  }
+
+                    //   ZedChart0.GraphPane.MinClusterGap = (float)0.002;
+                    //  ZedChart0.GraphPane.AddBar
+                    ZedChart0.AxisChange();
+                      ZedChart0.Invalidate();
+       
+ 
+        }
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
-           
+            sPort = new SerialPort();
+            if (sPort.IsOpen)
+            {
+                sPort.Close();
+            }
+            Control.CheckForIllegalCrossThreadCalls = false;
+          
+         //   sPort.DataReceived += new SerialDataReceivedEventHandler(port_DataReceived); 
+             
             
+        }
+        SerialPort sPort;
+        string Valuess=null;
+        private void port_DataReceived(object sender, System.IO.Ports.SerialDataReceivedEventArgs e)
+        {
+            if (sPort.IsOpen)
+            {
+               // byte[] data = Convert.FromBase64String(sPort.ReadLine());
+              //  this.label1.Text = Encoding.Unicode.GetString(data);
+                
+           //     int count = sPort.BytesToRead;
+           //     byte[] data = new byte[count];
+                // sPort.Read(data,0,count);
+            // string ss=sPort.ReadTo("\n");
+           // this.label1.Text = Encoding.Unicode.GetString(a);
+            //this.label1.Text = ss;
+           //   this.label1.Text = data.ToString();
+               // this.label1.Text = Encoding.Unicode.GetString(data);
+           //   this.label1.Text = Encoding.ASCII.GetString(data);
+
+                try
+                {
+                    sPort.NewLine = "\r";
+
+                    string ss = sPort.ReadLine();
+                    if (ss == "S")
+                    {
+                        DataGridViewRow aa = new DataGridViewRow();
+                        // this.dataGridView1.Rows.Add();
+                        int index = this.dataGridView1.Rows.Add();
+                        this.dataGridView1.Rows[index].Cells[0].Value = Valuess;
+                        this.dataGridView1.Refresh();
+                    }
+                    // this.label1.Text = Encoding.Unicode.GetString(a);
+                    else
+                        Valuess = ss;
+                    this.label1.Text = ss;
+                }
+                catch
+                {
+                    ;
+                }
+            }
+            ;
+        }
+        
+        private void monitorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+           
+            this.dataGridView1.DataSource = null;
+            this.dataGridView1.Rows.Clear();
+            this.dataGridView1.Columns.Clear();
+            this.dataGridView1.Columns.Add("Data", "Data");
+            this.dataGridView1.Columns.Add("Time", "Time");
+            this.dataGridView1.Columns["Time"].Width = 120;
+            dataGridView1.RowHeadersWidth = 80;
+            if (ThreadRun)
+                return;
+            if (sPort.IsOpen) return;
+     
+           // dataGridView1.Controls.
+         //   this.dataGridView1.Columns.
+            sPort.PortName = "com1";//串口的portname 
+            sPort.BaudRate = 9600;//串口的波特率
+            sPort.DataBits = 8;
+            //两个停止位
+            sPort.StopBits = System.IO.Ports.StopBits.One;
+            //无奇偶校验位
+            sPort.Parity = System.IO.Ports.Parity.None;
+            sPort.ReadTimeout = -1;
+            sPort.WriteTimeout = -1;
+            try
+            {
+                sPort.Open();
+            }catch
+                {
+                    sPort.Open();
+                }
+
+                t = new Thread(WriteY);
+                ThreadRun = true;
+                t.Start();     
+      
+        }
+        Thread t;
+        bool ThreadRun=false;
+        private delegate void InvokeHandler();
+        private void WriteY()
+        {
+            while (ThreadRun)
+            {
+                
+                if (sPort.IsOpen)
+                {
+                    // byte[] data = Convert.FromBase64String(sPort.ReadLine());
+                    //  this.label1.Text = Encoding.Unicode.GetString(data);
+
+                    //     int count = sPort.BytesToRead;
+                    //     byte[] data = new byte[count];
+                    // sPort.Read(data,0,count);
+                    // string ss=sPort.ReadTo("\n");
+                    // this.label1.Text = Encoding.Unicode.GetString(a);
+                    //this.label1.Text = ss;
+                    //   this.label1.Text = data.ToString();
+                    // this.label1.Text = Encoding.Unicode.GetString(data);
+                    //   this.label1.Text = Encoding.ASCII.GetString(data);
+                    try
+                    {
+                        sPort.NewLine = "\r";
+                        string ss = sPort.ReadLine();
+                        if (ss == "S")
+                        {
+                            // DataGridViewRow aa = new DataGridViewRow();
+                            // this.dataGridView1.Rows.Add();
+                            this.Invoke(new InvokeHandler(delegate()
+                           {
+
+                               int index = this.dataGridView1.Rows.Add();
+                               this.dataGridView1.Rows[index].Cells[0].Value = Valuess;
+                               this.dataGridView1.Rows[index].Cells[1].Value = DateTime.Now.ToString();
+                                this.dataGridView1.Rows[index].HeaderCell.Value = (index+1).ToString();      
+                               if (dataGridView1.RowCount > 4)
+                                   this.dataGridView1.FirstDisplayedScrollingRowIndex = dataGridView1.RowCount - 1;
+                               // this.dataGridView1.DisplayedRowCount();
+                           }));
+
+                            //  this.dataGridView1.Refresh();
+                        }
+                        // this.label1.Text = Encoding.Unicode.GetString(a);
+                        else
+                            Valuess = ss;
+                        this.label1.Text = ss;
+                    }
+                    catch
+                    {
+                        ;
+                    }
+                    //System.Threading.Thread.Sleep(100);
+                }
+            }
+        }
+        private void testGetdataToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+          //  byte[] data = Convert.FromBase64String(sPort.ReadLine());
+            sPort.NewLine ="\r";
+            string ss = sPort.ReadLine();
+           // this.label1.Text = Encoding.Unicode.GetString(a);
+            this.label1.Text = ss;
+        }
+
+        private void Form1_Deactivate(object sender, EventArgs e)
+        {
+            //MessageBox.Show("close");
+        }
+
+        private void formclosing(object sender, FormClosingEventArgs e)
+        {
+           // MessageBox.Show("close");
+            ThreadRun = false;
+            sPort.Close();         
+           
+        }
+            public void DataToExcel(DataGridView m_DataView)
+        {
+           SaveFileDialog kk = new SaveFileDialog(); 
+            kk.Title = "保存EXECL文件"; 
+            kk.Filter = "EXECL文件(*.xls) |*.xls |所有文件(*.*) |*.*"; 
+          kk.FilterIndex = 1;
+            if (kk.ShowDialog() == DialogResult.OK) 
+            { 
+                 string FileName = kk.FileName;
+                 if (File.Exists(FileName))
+                     File.Delete(FileName);
+                 FileStream objFileStream; 
+                StreamWriter objStreamWriter; 
+                string strLine = ""; 
+                objFileStream = new FileStream(FileName, FileMode.OpenOrCreate, FileAccess.Write); 
+                objStreamWriter = new StreamWriter(objFileStream, System.Text.Encoding.Unicode);
+              //   for (int i = 0; i  < m_DataView.Columns.Count; i++) 
+              //   { 
+                //    if (m_DataView.Columns[i].Visible == true) 
+                //     { 
+                    //    strLine = strLine + m_DataView.Columns[i].HeaderText.ToString() + Convert.ToChar(9); 
+                 //    } 
+             //    } 
+            //    objStreamWriter.WriteLine(strLine); 
+                strLine = ""; 
+
+             for (int i = 0; i  < m_DataView.Rows.Count; i++) 
+               { 
+                   if (m_DataView.Columns[0].Visible == true) 
+                    { 
+                       if (m_DataView.Rows[i].Cells[0].Value == null) 
+                          strLine = strLine + " " + Convert.ToChar(9); 
+                       else 
+                           strLine = strLine + m_DataView.Rows[i].Cells[0].Value.ToString() + Convert.ToChar(9); 
+                   } 
+                    for (int j = 1; j  < m_DataView.Columns.Count; j++) 
+                    { 
+                        if (m_DataView.Columns[j].Visible == true) 
+                        { 
+                           if (m_DataView.Rows[i].Cells[j].Value == null) 
+                                strLine = strLine + " " + Convert.ToChar(9); 
+                            else 
+                            { 
+                                string rowstr = ""; 
+                               rowstr = m_DataView.Rows[i].Cells[j].Value.ToString(); 
+                                if (rowstr.IndexOf("\r\n") >  0) 
+                                   rowstr = rowstr.Replace("\r\n", " "); 
+                               if (rowstr.IndexOf("\t") >  0) 
+                                    rowstr = rowstr.Replace("\t", " "); 
+                                strLine = strLine + rowstr + Convert.ToChar(9); 
+                            } 
+                        } 
+                    } 
+                   objStreamWriter.WriteLine(strLine); 
+                    strLine = ""; 
+               } 
+                objStreamWriter.Close(); 
+                objFileStream.Close();
+               MessageBox.Show(this,"保存EXCEL成功","提示",MessageBoxButtons.OK,MessageBoxIcon.Information); 
+            }
+        }
+        void saveexcel(DataGridView m_DataView)
+        {
+            DataTable DT1=GetDgvToTable(m_DataView);
+            DT1.TableName="data";
+            String sConnectionString = "Provider=Microsoft.Jet.OLEDB.4.0;" +
+     "Data Source=K:\\work111\\excel1.xls;" +
+     "Extended Properties=Excel 8.0;";
+            //实例化一个Oledbconnection类(实现了IDisposable,要using)
+                using (OleDbConnection ole_conn = new OleDbConnection(sConnectionString))
+                {
+                    ole_conn.Open();
+                 using (OleDbCommand ole_cmd = ole_conn.CreateCommand())
+                   {
+                  //     ole_cmd.CommandText = "CREATE TABLE data ([Data] VarChar,[Time] VarChar)";
+                   //   ole_cmd.ExecuteNonQuery();
+                     //   ole_cmd.CommandText = "insert into data values('DJ001','点击科技')";
+                     //   ole_cmd.ExecuteNonQuery();
+                       // ole_cmd.up
+                       // MessageBox.Show("生成Excel文件成功并写入一条数据......");
+                    }
+
+                    string strCom = " SELECT * FROM data";
+
+                  OleDbDataAdapter myDA = new OleDbDataAdapter(strCom, ole_conn); ;
+                   // SqlDataAdapter myDA = new SqlDataAdapter(strCom, sConnectionString);
+                   // SqlCommandBuilder cbUpdate = new SqlCommandBuilder(myDA);
+                  OleDbCommandBuilder cb = new OleDbCommandBuilder(myDA);
+                 // myDA.UpdateCommand = cb.GetUpdateCommand(); 
+                    myDA.Update(DT1);
+                }
+
+        }
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+           // DataToExcel(this.dataGridView1);
+            saveexcel(this.dataGridView1);
+        }
+
+        private void fileFToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

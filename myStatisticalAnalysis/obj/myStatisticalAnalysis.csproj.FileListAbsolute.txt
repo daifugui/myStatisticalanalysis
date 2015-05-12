@@ -6,3 +6,4 @@ K:\vc\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\myStatisticalAnalysi
 K:\vc\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\myStatisticalAnalysis.csproj.GenerateResource.Cache
 K:\vc\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\myStatisticalAnalysis.exe
 K:\vc\myStatisticalAnalysis\myStatisticalAnalysis\obj\Debug\myStatisticalAnalysis.pdb
+K:\vc\myStatisticalAnalysis\myStatisticalAnalysis\bin\Debug\ZedGraph.dll
